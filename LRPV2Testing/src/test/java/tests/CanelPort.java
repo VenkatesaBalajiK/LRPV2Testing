@@ -1,138 +1,90 @@
 package tests;
 
-import java.time.Duration;
 import java.util.List;
-import java.util.Map;
 
 import org.openqa.selenium.By;
-import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
-import org.openqa.selenium.chrome.ChromeDriver;
-import org.openqa.selenium.chrome.ChromeOptions;
-import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.support.ui.ExpectedConditions;
-import org.openqa.selenium.support.ui.WebDriverWait;
-import org.testng.annotations.AfterTest;
-import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 
-public class CanelPort {
-	WebDriver driver;
-	WebDriverWait wait;
-	Actions action;
-	
+public class CanelPort extends BaseTest {
+
 	private static String search = "//div[contains(@class,'dynmastertwocolsearchpanel')]//button[starts-with(@id,'CNL-j_id')]";
-
-	@BeforeTest
-	public void BrowserSetup() {
-
-		ChromeOptions options = new ChromeOptions();
-
-		// Disable Chrome's password manager
-		options.addArguments("--disable-features=PasswordManager");
-		options.addArguments("--disable-save-password-bubble");
-		options.setExperimentalOption("prefs",
-				Map.of("credentials_enable_service", false, "profile.password_manager_enabled", false));
-		options.setExperimentalOption("prefs",
-				java.util.Collections.singletonMap("profile.password_manager_leak_detection", false));
-
-		driver = new ChromeDriver(options);
-		driver.manage().window().maximize();
-		driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(10));
-		wait = new WebDriverWait(driver, Duration.ofSeconds(10));
-		action = new Actions(driver);
-	}
+	private static String searchfieldXpath = "//input[@id='nfr_topbar_autocomp_input']";
+	private static String dropdownValueXpath = "//li[@data-item-label='Canal Ports']";
+	private static String portSearchXpath = "//input[@data-ref='eInput' and contains(@aria-label,'Port Code')]";
+	private static String portValueXpath = "//div[contains(text(),'ASDSR')]";
+	private static String selectButtonXpath = "//button[@id='nfr-twocol-select-button']";
+	private static String topSearchIdValue = "CNL-CNL_toolbar-btnTblDefaultSearch";
+	private static String modalPopupIdValue = "nfr_sch_twocolumn_modal";
 
 	@Test(priority = 1)
-	public void LaunchApp() {
-		driver.get("https://lrpv2.solverminds.net/main");
-		System.out.println("Application Launched");
-		WebElement Username = driver.findElement(By.id("nfr_login_authname"));
-		Username.sendKeys("superuser");
-		WebElement Password = driver.findElement(By.id("nfr_login_authid"));
-		Password.sendKeys("P@ssw0rd");
-		WebElement Login = driver.findElement(By.id("nfr_login_btnlogin"));
-		Login.click();
-		System.out.println("Login Successfull");
+	public void SearchModule() throws InterruptedException {
+		login();
+		Thread.sleep(5000);
+		WebElement searchfield = driver.findElement(By.xpath(searchfieldXpath));
+		sendKeysToElement(searchfield, "Canal Ports");
+		Thread.sleep(5000);
+		clickElement(driver.findElement(By.xpath(dropdownValueXpath)));
 	}
 
 	@Test(priority = 2)
-	public void SearchModule() throws InterruptedException {
-		WebElement searchfield = driver.findElement(By.xpath("//input[@id='nfr_topbar_autocomp_input']"));
-		searchfield.sendKeys("Canal Ports");
-
-		Thread.sleep(5000);
-
-		wait = new WebDriverWait(driver, Duration.ofSeconds(10));
-		WebElement Drpdown = wait
-				.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//li[@data-item-label='Canal Ports']")));
-		Drpdown.click();
-	}
-
-	@Test(priority = 3)
 	public void CRUD() throws InterruptedException {
 
 		// Creating the port
+		Thread.sleep(5000);
 		WebElement searchbtn = driver.findElement(By.xpath(search));
-		searchbtn.click();
+		clickElement(searchbtn);
 
-		WebElement portsearch = wait.until(ExpectedConditions.visibilityOfElementLocated(
-				By.xpath("//input[@data-ref='eInput' and contains(@aria-label,'Port Code')]")));
-		portsearch.click();
-		portsearch.sendKeys("ASDSR");
+		WebElement portsearch = wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath(portSearchXpath)));
+		clickElement(portsearch);
+		sendKeysToElement(portsearch, "ASDSR");
 
-		WebElement portvalue = driver.findElement(By.xpath("//div[contains(text(),'ASDSR')]"));
-		action.doubleClick(portvalue).perform();
+		WebElement portvalue = driver.findElement(By.xpath(portValueXpath));
+		doubleClickElement(portvalue);
 
-		List<WebElement> modalPopup = driver.findElements(By.id("nfr_sch_twocolumn_modal"));
+		List<WebElement> modalPopup = driver.findElements(By.id(modalPopupIdValue));
 		if (modalPopup.size() != 0) {
-			WebElement selectbtn = driver.findElement(By.xpath("//button[@id='nfr-twocol-select-button']"));
-			selectbtn.click();
+			WebElement selectbtn = driver.findElement(By.xpath(selectButtonXpath));
+			clickElement(selectbtn);
 		}
 
 		WebElement savebtn = driver.findElement(By.id("CNL-CNL_toolbar-btnsave"));
-		savebtn.click();
-		
-//		WebElement notificationPopup = wait.until(ExpectedConditions.presenceOfElementLocated(
-//				By.xpath("//div[@class=ui-growl-message]")));
-//		
-//		String msg1 = driver.findElement(By.xpath("//div[@class=ui-growl-message]/span")).getText();
-//		String msg2 = driver.findElement(By.xpath("//div[@class=ui-growl-message]/p")).getText();
-//
-//		System.out.println("Notification " + msg1 + msg2);
-		
+		clickElement(savebtn);
+
 		System.out.println("Saved Successfully ");
+		Thread.sleep(2000);
 	}
 
-	@Test(priority = 4)
-	public void read() {
+	@Test(priority = 3)
+	public void read() throws InterruptedException {
 		// Read the created port
 		WebElement searchbtn = driver.findElement(By.xpath(search));
-		searchbtn.click();
-		WebElement portsearch = driver.findElement(By.xpath(
-				"//input[@class='ag-input-field-input ag-text-field-input' and contains(@aria-label,'Port Code')]"));
-		portsearch.sendKeys("ASDSR");
-		WebElement portvalue = driver.findElement(By.xpath("//div[contains(text(),'ASDSR')]"));
-		action.doubleClick(portvalue).perform();
+		clickElement(searchbtn);
+		
+		Thread.sleep(2000);
+		WebElement portsearch = wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath(portSearchXpath)));
+		clickElement(portsearch);
+		sendKeysToElement(portsearch, "ASDSR");
 
-		List<WebElement> modalPopup = driver.findElements(By.id("nfr_sch_twocolumn_modal"));
+		WebElement portvalue = driver.findElement(By.xpath(portValueXpath));
+		doubleClickElement(portvalue);
+
+		List<WebElement> modalPopup = driver.findElements(By.id(modalPopupIdValue));
 		if (modalPopup.size() != 0) {
-			WebElement selectbtn = driver.findElement(By.xpath("//button[@id='nfr-twocol-select-button']"));
+			WebElement selectbtn = driver.findElement(By.xpath(selectButtonXpath));
 			selectbtn.click();
 		}
 
-		WebElement topsearchbtn = driver.findElement(By.id("CNL-CNL_toolbar-btnTblDefaultSearch"));
+		WebElement topsearchbtn = driver.findElement(By.id(topSearchIdValue));
 		topsearchbtn.click();
-
-		/*
-		 * WebElement Notification = driver.findElement(By.
-		 * xpath("//div[@class=ui-growl-message] and contains(text(),'Functions not Supported')"
-		 * )); Notification.getText();
-		 */
 	}
 
-	@AfterTest
-	public void BrowserClose() {
-		driver.quit();
-	}
+//	public void getNotificationMessage() {
+//		WebElement notificationPopup = wait.until(ExpectedConditions.presenceOfElementLocated(
+//		By.xpath("//div[@class=ui-growl-message]")));
+//		String msg1 = driver.findElement(By.xpath("//div[@class=ui-growl-message]/span")).getText();
+//		String msg2 = driver.findElement(By.xpath("//div[@class=ui-growl-message]/p")).getText();
+//		System.out.println("Notification " + msg1 + msg2);
+//	}
 }
